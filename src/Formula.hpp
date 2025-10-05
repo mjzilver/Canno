@@ -56,8 +56,6 @@ public:
 
     std::vector<std::shared_ptr<Cell>> calc_deps(std::shared_ptr<Sheet> sheet);
 
-    std::vector<std::shared_ptr<Cell>> dependencies() const;
-
 private:
     std::string err_msg = "";
     bool failed = false;

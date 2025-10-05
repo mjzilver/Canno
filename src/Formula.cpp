@@ -287,7 +287,3 @@ std::vector<std::shared_ptr<Cell>> Formula::calc_deps(std::shared_ptr<Sheet> she
 
     return deps;
 }
-
-std::vector<std::shared_ptr<Cell>> Formula::dependencies() const {
-    return deps;
-}
