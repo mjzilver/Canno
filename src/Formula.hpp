@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 
+// forward declaration
 class Cell;
-class Sheet;  // forward declaration
+class Sheet;
 
 enum class Token {
     NUM_TOK,       // 12 or 12.12 or .012
@@ -29,14 +30,14 @@ struct TokenData {
 
 struct Node {
     enum class Type {
-        Number,   // float
-        String,   // string
-        CellRef,  // ptr
-        Function,
-        Add,
-        Subtract,
-        Multiply,
-        Divide
+        NUMBER,    // float
+        STRING,    // string
+        CELL_REF,  // ptr
+        FUNCTION,
+        ADD,
+        SUBTRACT,
+        MULTIPLY,
+        DIVIDE
     } type;
     std::string value;
     std::shared_ptr<Node> left;

@@ -9,7 +9,7 @@
 
 class Cell : public std::enable_shared_from_this<Cell> {
 public:
-    explicit Cell(std::shared_ptr<Sheet> parentSheet);
+    explicit Cell(std::shared_ptr<Sheet> parent_sheet);
 
     std::string get_value();
     void set_value(const std::string& val);

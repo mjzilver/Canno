@@ -9,37 +9,6 @@
 #include "Cell.hpp"
 #include "Sheet.hpp"
 
-std::string token_to_string(Token t) {
-    switch (t) {
-        case Token::NUM_TOK:
-            return "NUM_TOK";
-        case Token::STR_TOK:
-            return "STR_TOK";
-        case Token::EQ_TOK:
-            return "EQ_TOK";
-        case Token::MIN_TOK:
-            return "MIN_TOK";
-        case Token::PLUS_TOK:
-            return "PLUS_TOK";
-        case Token::DIV_TOK:
-            return "DIV_TOK";
-        case Token::MULT_TOK:
-            return "MULT_TOK";
-        case Token::COMM_TOK:
-            return "COMM_TOK";
-        case Token::LPAR_TOK:
-            return "LPAR_TOK";
-        case Token::RPAR_TOK:
-            return "RPAR_TOK";
-        case Token::CELL_REF_TOK:
-            return "CELL_REF_TOK";
-        case Token::FUNC_TOK:
-            return "FUNC_TOK";
-        default:
-            return "UNKNOWN";
-    }
-}
-
 Formula::Formula(const std::shared_ptr<Cell>& cell, const std::string& expr) {
     text = expr;
     containing_cell = cell;
@@ -82,11 +51,11 @@ std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::share
 }
 
 std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
-    if (node->type == Node::Type::Number) {
+    if (node->type == Node::Type::NUMBER) {
         return node->value;
-    } else if (node->type == Node::Type::String) {
+    } else if (node->type == Node::Type::STRING) {
         return node->value;
-    } else if (node->type == Node::Type::CellRef) {
+    } else if (node->type == Node::Type::CELL_REF) {
         std::shared_ptr<Cell> ref_cell = sheet->get_cell(node->value);
 
         if (ref_cell != nullptr) {
@@ -98,13 +67,13 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
         } else {
             return set_err("unknown ref " + node->value);
         }
-    } else if (node->type == Node::Type::Add) {
+    } else if (node->type == Node::Type::ADD) {
         return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a + b; });
-    } else if (node->type == Node::Type::Subtract) {
+    } else if (node->type == Node::Type::SUBTRACT) {
         return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a - b; });
-    } else if (node->type == Node::Type::Multiply) {
+    } else if (node->type == Node::Type::MULTIPLY) {
         return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a * b; });
-    } else if (node->type == Node::Type::Divide) {
+    } else if (node->type == Node::Type::DIVIDE) {
         return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a / b; });
     }
 
@@ -145,11 +114,11 @@ void Formula::tokenize(const std::string& expr) {
         // Number
         if (isdigit(c) || c == '.') {
             std::string num;
-            bool hasDot = (c == '.');
+            bool has_dot = (c == '.');
             num += c;
-            while (i + 1 < expr.size() && (isdigit(expr[i + 1]) || (!hasDot && expr[i + 1] == '.'))) {
+            while (i + 1 < expr.size() && (isdigit(expr[i + 1]) || (!has_dot && expr[i + 1] == '.'))) {
                 ++i;
-                if (expr[i] == '.') hasDot = true;
+                if (expr[i] == '.') has_dot = true;
                 num += expr[i];
             }
             tokens.push_back({Token::NUM_TOK, num});
@@ -206,9 +175,9 @@ std::shared_ptr<Node> Formula::parse_expression() {
         auto right = parse_term();
 
         if (op == Token::PLUS_TOK)
-            node = std::make_shared<Node>(Node::Type::Add, "+", node, right);
+            node = std::make_shared<Node>(Node::Type::ADD, "+", node, right);
         else
-            node = std::make_shared<Node>(Node::Type::Subtract, "-", node, right);
+            node = std::make_shared<Node>(Node::Type::SUBTRACT, "-", node, right);
     }
 
     return node;
@@ -222,9 +191,9 @@ std::shared_ptr<Node> Formula::parse_term() {
         auto right = parse_term();
 
         if (op == Token::DIV_TOK) {
-            node = std::make_shared<Node>(Node::Type::Divide, "/", node, right);
+            node = std::make_shared<Node>(Node::Type::DIVIDE, "/", node, right);
         } else {
-            node = std::make_shared<Node>(Node::Type::Multiply, "*", node, right);
+            node = std::make_shared<Node>(Node::Type::MULTIPLY, "*", node, right);
         }
     }
 
@@ -242,12 +211,12 @@ std::shared_ptr<Node> Formula::parse_factor() {
     // if num
     if (tok.type == Token::NUM_TOK) {
         advance();
-        return std::make_shared<Node>(Node::Type::Number, tok.value);
+        return std::make_shared<Node>(Node::Type::NUMBER, tok.value);
     }
     // if cell ref
     if (tok.type == Token::CELL_REF_TOK) {
         advance();
-        return std::make_shared<Node>(Node::Type::CellRef, tok.value);
+        return std::make_shared<Node>(Node::Type::CELL_REF, tok.value);
     }
     // TODO: function & parens
 
@@ -280,7 +249,7 @@ bool Formula::at_end() const { return current >= tokens.size(); }
 void Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
     if (!node) return;
 
-    if (node->type == Node::Type::CellRef) {
+    if (node->type == Node::Type::CELL_REF) {
         if (auto cell = sheet->get_cell(node->value)) {
             deps.push_back(cell);
         }

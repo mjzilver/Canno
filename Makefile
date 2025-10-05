@@ -34,5 +34,8 @@ run: $(EXEC)
 format:
 	clang-format -i $(CPP_FILES) $(HPP_FILES)
 
+tidy:
+	clang-tidy -p $(CPP_FILES) $(HPP_FILES) -- $(CXXFLAGS)
+
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
