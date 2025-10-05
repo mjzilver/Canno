@@ -26,6 +26,7 @@ int main() {
                       << "help          -- Shows this helpful message\n"
                       << "set REF VALUE -- Sets the value for the cell at REF (e.g., A1)\n"
                       << "get REF       -- Gets the value for the cell at REF (e.g., B2)\n"
+                      << "print         -- Prints the whole grid\n"
                       << "quit          -- Quits the Canno program\n";
         } else if (command == "set") {
             std::string cell_ref;
@@ -50,6 +51,18 @@ int main() {
             } else {
                 std::cout << "Failed to get " << cell_ref << "\n";
             }
+        } else if (command == "print") {
+            for (size_t y = 0; y < sheet->CELL_HEIGHT; ++y) {
+                for (size_t x = 0; x < sheet->CELL_WIDTH; ++x) {
+                    auto cell_val = sheet->get_cell_val(x, y);
+                    if (cell_val.has_value()) {
+                        std::cout << cell_val.value() << " ";
+                    }
+                    std::cout << "  ";
+                }
+                std::cout << std::endl;
+            }
+
         } else {
             std::cout << "Unknown command: " << command << "\n";
         }

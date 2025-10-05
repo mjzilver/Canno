@@ -1,11 +1,13 @@
 #include "Sheet.hpp"
-#include "Cell.hpp"
 
 #include <cctype>
 #include <charconv>
+#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <optional>
+
+#include "Cell.hpp"
 
 Sheet::Sheet() {}
 
@@ -48,6 +50,12 @@ std::shared_ptr<Cell> Sheet::get_cell(int col, int row) {
     return nullptr;
 }
 
+std::shared_ptr<Cell> Sheet::get_cell(const std::string& cell_ref) {
+    auto indices = cell_ref_to_indices(cell_ref);
+    if (!indices.has_value()) return nullptr;
+    return get_cell(indices->first, indices->second);
+}
+
 std::optional<std::string> Sheet::get_cell_val(int col, int row) {
     if (col >= 0 && col < CELL_WIDTH && row >= 0 && row < CELL_HEIGHT) {
         return cells[col][row]->get_value();
@@ -61,7 +69,7 @@ std::optional<std::string> Sheet::get_cell_val(const std::string& cell_ref) {
     return get_cell_val(indices->first, indices->second);
 }
 
-std::optional<std::pair<int,int>> Sheet::cell_ref_to_indices(const std::string& cell_ref) {
+std::optional<std::pair<int, int>> Sheet::cell_ref_to_indices(const std::string& cell_ref) {
     int col = 0;
     int row = 0;
     size_t i = 0;

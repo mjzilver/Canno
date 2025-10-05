@@ -25,11 +25,10 @@ void Cell::set_value(const std::string& val) {
             siblings.erase(std::remove(siblings.begin(), siblings.end(), shared_from_this()), siblings.end());
         }
         parents.clear();
-        auto deps = formula->dependencies();
+        auto deps = formula->calc_deps(sheet);
 
         for (auto& dep : deps) {
-            auto cell_val = sheet->get_cell(dep.first, dep.second);
-            parents.push_back(cell_val);
+            parents.push_back(dep);
         }
 
         for (auto& parent : parents) {

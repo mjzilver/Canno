@@ -4,9 +4,10 @@
 #include <cstddef>
 #include <memory>
 #include <stdexcept>
-#include <utility>
+#include <string>
 
 #include "Sheet.hpp"
+#include "Cell.hpp"
 
 std::string token_to_string(Token t) {
     switch (t) {
@@ -41,35 +42,66 @@ std::string token_to_string(Token t) {
 
 Formula::Formula(const std::string& expr) { parse(expr); }
 
+std::string Formula::set_err(const std::string& err) {
+    auto full_error = "#ERR: " + err;
+    failed = true;
+    err_msg = full_error;
+    return full_error;
+}
+
 std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
+    deps.clear();
+
     if (failed) {
         return err_msg;
     }
 
     if (!root) {
-        return "#ERR: No root";
+        return set_err("No root node");
     }
 
     return evaluate_node(sheet, root);
 }
 
+std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
+                                        std::shared_ptr<Node> right, const std::function<int(int, int)>& op) {
+    auto left_val = evaluate_node(sheet, left);
+    auto right_val = evaluate_node(sheet, right);
+
+    try {
+        int l = std::stoi(left_val);
+        int r = std::stoi(right_val);
+        return std::to_string(op(l, r));
+    } catch (...) {
+        return set_err("Invalid binary operation");
+    }
+}
+
 std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
     if (node->type == Node::Type::Number) {
         return node->value;
+    } else if (node->type == Node::Type::String) {
+        return node->value;
     } else if (node->type == Node::Type::CellRef) {
-        auto ref_val = sheet->get_cell_val(node->value);
+        std::shared_ptr<Cell> ref_cell = sheet->get_cell(node->value);
 
-        if (ref_val.has_value()) {
-            return ref_val.value();
+        if (ref_cell != nullptr) {
+            return ref_cell->get_value();
         } else {
-            return "#ERR: unknown ref " + node->value;
+            return set_err("unknown ref " + node->value);
         }
+    } else if (node->type == Node::Type::Add) {
+        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a + b; });
+    } else if (node->type == Node::Type::Subtract) {
+        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a - b; });
+    } else if (node->type == Node::Type::Multiply) {
+        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a * b; });
+    } else if (node->type == Node::Type::Divide) {
+        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a / b; });
     }
 
-    return "#ERR: Unexpected node type";
+    return set_err("Unexpected node type");
 }
-
-std::vector<std::pair<int, int>> Formula::dependencies() const { return deps; }
 
 void Formula::tokenize(const std::string& expr) {
     for (size_t i = 0; i < expr.length(); ++i) {
@@ -178,24 +210,23 @@ std::shared_ptr<Node> Formula::parse_expression() {
 std::shared_ptr<Node> Formula::parse_term() {
     auto node = parse_factor();
     while (match({Token::DIV_TOK, Token::MULT_TOK})) {
-      Token op = previous().type;
+        Token op = previous().type;
         auto right = parse_term();
 
-        if (op == Token::DIV_TOK)
+        if (op == Token::DIV_TOK) {
             node = std::make_shared<Node>(Node::Type::Divide, "/", node, right);
-        else
+        } else {
             node = std::make_shared<Node>(Node::Type::Multiply, "*", node, right);
+        }
     }
 
     return node;
 }
 
-
 // highest precedence = nums, (), cell_ref, funcs
 std::shared_ptr<Node> Formula::parse_factor() {
     if (at_end()) {
-        failed = true;
-        err_msg = "#ERR: unexpected end of formula";
+        set_err("Unexpcted end of formula");
         return nullptr;
     }
 
@@ -212,8 +243,7 @@ std::shared_ptr<Node> Formula::parse_factor() {
     }
     // TODO: function & parens
 
-    failed = true;
-    err_msg = "#ERR: unexpected token '" + tok.value + "'";
+    set_err("unexpected token '" + tok.value + "'");
     return nullptr;
 }
 
@@ -237,3 +267,27 @@ const TokenData& Formula::peek() const { return tokens[current]; }
 const TokenData& Formula::previous() const { return tokens[current - 1]; }
 
 bool Formula::at_end() const { return current >= tokens.size(); }
+
+void Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
+    if (!node) return;
+    
+    if(node->type == Node::Type::CellRef) {
+        if (auto cell = sheet->get_cell(node->value)) {
+            deps.push_back(cell);
+        }
+    }
+
+    calc_node_deps(sheet, node->left);
+    calc_node_deps(sheet, node->right);
+}
+
+std::vector<std::shared_ptr<Cell>> Formula::calc_deps(std::shared_ptr<Sheet> sheet) {
+    if (!root) return deps;
+    calc_node_deps(sheet, root);
+
+    return deps;
+}
+
+std::vector<std::shared_ptr<Cell>> Formula::dependencies() const {
+    return deps;
+}

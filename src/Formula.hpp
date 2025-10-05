@@ -1,10 +1,11 @@
 #pragma once
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
-class Sheet;  // forward declaration
 class Cell;
+class Sheet;  // forward declaration
 
 enum class Token {
     NUM_TOK,       // 12 or 12.12 or .012
@@ -31,7 +32,7 @@ struct Node {
         Number,   // float
         String,   // string
         CellRef,  // unique ptr
-        Fumction,
+        Function,
         Add,
         Subtract,
         Multiply,
@@ -41,7 +42,7 @@ struct Node {
     std::shared_ptr<Node> left;
     std::shared_ptr<Node> right;
 
-    Node(Type t, const std::string& val): type(t), value(val) {}
+    Node(Type t, const std::string& val) : type(t), value(val) {}
 
     Node(Type t, const std::string& val, const std::shared_ptr<Node>& l, const std::shared_ptr<Node>& r)
         : type(t), value(val), left(l), right(r) {}
@@ -53,7 +54,9 @@ public:
 
     std::string evaluate(std::shared_ptr<Sheet> sheet);
 
-    std::vector<std::pair<int, int>> dependencies() const;
+    std::vector<std::shared_ptr<Cell>> calc_deps(std::shared_ptr<Sheet> sheet);
+
+    std::vector<std::shared_ptr<Cell>> dependencies() const;
 
 private:
     std::string err_msg = "";
@@ -62,12 +65,15 @@ private:
 
     std::shared_ptr<Node> root;
     std::vector<TokenData> tokens;
-    std::vector<std::pair<int, int>> deps = {};
+    std::vector<std::shared_ptr<Cell>> deps;
 
     void parse(const std::string& expr);
     void tokenize(const std::string& expr);
 
+    std::string set_err(const std::string& err);
     std::string evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
+    std::string evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
+                                   std::shared_ptr<Node> right, const std::function<int(int, int)>& op);
 
     std::shared_ptr<Node> parse_expression();
     std::shared_ptr<Node> parse_term();
@@ -78,4 +84,6 @@ private:
     const TokenData& peek() const;
     const TokenData& previous() const;
     bool at_end() const;
+
+    void calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
 };
