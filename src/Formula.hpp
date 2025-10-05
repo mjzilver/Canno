@@ -31,7 +31,7 @@ struct Node {
     enum class Type {
         Number,   // float
         String,   // string
-        CellRef,  // unique ptr
+        CellRef,  // ptr
         Function,
         Add,
         Subtract,
@@ -50,16 +50,21 @@ struct Node {
 
 class Formula {
 public:
-    explicit Formula(const std::string& expr);
+    explicit Formula(const std::shared_ptr<Cell>& cell, const std::string& expr);
 
     std::string evaluate(std::shared_ptr<Sheet> sheet);
 
     std::vector<std::shared_ptr<Cell>> calc_deps(std::shared_ptr<Sheet> sheet);
 
+    std::string get_text() { return text; }
+
 private:
     std::string err_msg = "";
     bool failed = false;
     size_t current = 0;
+
+    std::shared_ptr<Cell> containing_cell = nullptr;
+    std::string text = "";
 
     std::shared_ptr<Node> root;
     std::vector<TokenData> tokens;

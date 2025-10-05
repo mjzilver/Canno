@@ -6,8 +6,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "Sheet.hpp"
 #include "Cell.hpp"
+#include "Sheet.hpp"
 
 std::string token_to_string(Token t) {
     switch (t) {
@@ -40,7 +40,11 @@ std::string token_to_string(Token t) {
     }
 }
 
-Formula::Formula(const std::string& expr) { parse(expr); }
+Formula::Formula(const std::shared_ptr<Cell>& cell, const std::string& expr) {
+    text = expr;
+    containing_cell = cell;
+    parse(expr);
+}
 
 std::string Formula::set_err(const std::string& err) {
     auto full_error = "#ERR: " + err;
@@ -86,6 +90,10 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
         std::shared_ptr<Cell> ref_cell = sheet->get_cell(node->value);
 
         if (ref_cell != nullptr) {
+            if (ref_cell == containing_cell) {
+                return set_err("Circular ref");
+            }
+
             return ref_cell->get_value();
         } else {
             return set_err("unknown ref " + node->value);
@@ -263,6 +271,7 @@ const TokenData& Formula::advance() {
     if (!at_end()) current++;
     return tokens[current - 1];
 }
+
 const TokenData& Formula::peek() const { return tokens[current]; }
 const TokenData& Formula::previous() const { return tokens[current - 1]; }
 
@@ -270,8 +279,8 @@ bool Formula::at_end() const { return current >= tokens.size(); }
 
 void Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
     if (!node) return;
-    
-    if(node->type == Node::Type::CellRef) {
+
+    if (node->type == Node::Type::CellRef) {
         if (auto cell = sheet->get_cell(node->value)) {
             deps.push_back(cell);
         }

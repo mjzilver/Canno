@@ -22,6 +22,8 @@ public:
     std::shared_ptr<Cell> get_cell(const std::string& cell_ref);
     std::optional<std::string> get_cell_val(int col, int row);
     std::optional<std::string> get_cell_val(const std::string& cell_ref);
+    std::optional<std::string> get_cell_formula(int col, int row);
+    std::optional<std::string> get_cell_formula(const std::string& cell_ref);
 
 private:
     std::array<std::array<std::shared_ptr<Cell>, CELL_HEIGHT>, CELL_WIDTH> cells;

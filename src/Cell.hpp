@@ -13,6 +13,7 @@ public:
 
     std::string get_value();
     void set_value(const std::string& val);
+    std::optional<std::string> get_formula();
 
     void mark_dirty();
     void add_parent(const std::shared_ptr<Cell>& parent);

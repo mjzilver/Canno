@@ -16,9 +16,13 @@ std::string Cell::get_value() {
     return value;
 }
 
+std::optional<std::string> Cell::get_formula() {
+    return formula->get_text();
+}
+
 void Cell::set_value(const std::string& val) {
     if (!val.empty() && val[0] == '=') {
-        formula = Formula(val);
+        formula = Formula(shared_from_this(), val);
 
         for (auto& parent : parents) {
             auto& siblings = parent->children;

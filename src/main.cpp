@@ -25,7 +25,8 @@ int main() {
             std::cout << "Commands available for Canno:\n"
                       << "help          -- Shows this helpful message\n"
                       << "set REF VALUE -- Sets the value for the cell at REF (e.g., A1)\n"
-                      << "get REF       -- Gets the value for the cell at REF (e.g., B2)\n"
+                      << "get REF       -- Gets the value for the cell at REF\n"
+                      << "getf REF      -- Gets the formula for the cell at REF\n"
                       << "print         -- Prints the whole grid\n"
                       << "quit          -- Quits the Canno program\n";
         } else if (command == "set") {
@@ -50,6 +51,16 @@ int main() {
                 std::cout << "get " << cell_ref << " = \"" << *value << "\"\n";
             } else {
                 std::cout << "Failed to get " << cell_ref << "\n";
+            }
+        } else if (command == "getf") {
+            std::string cell_ref;
+            iss >> cell_ref;
+
+            auto value = sheet->get_cell_formula(cell_ref);
+            if (value) {
+                std::cout << "get formula " << cell_ref << " = \"" << *value << "\"\n";
+            } else {
+                std::cout << "Failed to get formula " << cell_ref << "\n";
             }
         } else if (command == "print") {
             for (size_t y = 0; y < sheet->CELL_HEIGHT; ++y) {
