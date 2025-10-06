@@ -2,6 +2,8 @@
 
 #include <cctype>
 #include <cstddef>
+#include <iomanip>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -35,22 +37,36 @@ std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
 }
 
 std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
-                                        std::shared_ptr<Node> right, const std::function<int(int, int)>& op) {
+                                        std::shared_ptr<Node> right, const std::function<double(double, double)>& op) {
     auto left_val = evaluate_node(sheet, left);
     auto right_val = evaluate_node(sheet, right);
 
     try {
-        int l = std::stoi(left_val);
-        int r = std::stoi(right_val);
-        return std::to_string(op(l, r));
+        double l = std::stod(left_val);
+        double r = std::stod(right_val);
+
+        return pretty_print_double(op(l, r));
     } catch (...) {
         return set_err("Invalid binary operation");
     }
 }
 
+std::string Formula::pretty_print_double(double d) {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(10) << d;
+    std::string s = ss.str();
+
+    s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+
+    if (!s.empty() && s.back() == '.')
+        s.pop_back();
+
+    return s;
+}
+
 std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
     if (node->type == Node::Type::NUMBER) {
-        return node->value;
+        return pretty_print_double(std::stod(node->value));
     } else if (node->type == Node::Type::STRING) {
         return node->value;
     } else if (node->type == Node::Type::CELL_REF) {
@@ -66,13 +82,13 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
             return set_err("unknown ref " + node->value);
         }
     } else if (node->type == Node::Type::ADD) {
-        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a + b; });
+        return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a + b; });
     } else if (node->type == Node::Type::SUBTRACT) {
-        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a - b; });
+        return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a - b; });
     } else if (node->type == Node::Type::MULTIPLY) {
-        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a * b; });
+        return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a * b; });
     } else if (node->type == Node::Type::DIVIDE) {
-        return evaluate_binary_op(sheet, node->left, node->right, [](int a, int b) { return a / b; });
+        return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a / b; });
     }
 
     return set_err("Unexpected node type");

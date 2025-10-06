@@ -78,7 +78,7 @@ private:
     std::string set_err(const std::string& err);
     std::string evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
     std::string evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
-                                   std::shared_ptr<Node> right, const std::function<int(int, int)>& op);
+                                   std::shared_ptr<Node> right, const std::function<double(double, double)>& op);
 
     std::shared_ptr<Node> parse_expression();
     std::shared_ptr<Node> parse_term();
@@ -91,4 +91,7 @@ private:
     bool at_end() const;
 
     void calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
+
+    std::string pretty_print_double(double d);
+
 };
