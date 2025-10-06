@@ -10,20 +10,14 @@ CPP_FILES := $(shell find $(SRC_DIR) -name "*.cpp")
 HPP_FILES := $(shell find $(SRC_DIR) -name "*.hpp")
 
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_FILES))
-MAIN_OBJ := $(OBJ_DIR)/main.o
-LIB_OBJS := $(filter-out $(MAIN_OBJ),$(OBJ_FILES))
 
-EXEC := $(BIN_DIR)/canno
 LIB := $(BIN_DIR)/libcanno.so
 
-.PHONY: all run clean
+.PHONY: all clean
 
 all: $(EXEC) $(LIB)
 
-$(EXEC): $(OBJ_FILES) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $^
-
-$(LIB): $(LIB_OBJS) | $(BIN_DIR)
+$(LIB): $(OBJ_FILES) | $(BIN_DIR)
 	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
@@ -34,9 +28,6 @@ $(OBJ_DIR):
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
-
-run: $(EXEC)
-	./$(EXEC)
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)

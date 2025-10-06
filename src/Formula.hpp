@@ -93,5 +93,4 @@ private:
     void calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
 
     std::string pretty_print_double(double d);
-
 };

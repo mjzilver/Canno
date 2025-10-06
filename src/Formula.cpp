@@ -58,8 +58,7 @@ std::string Formula::pretty_print_double(double d) {
 
     s.erase(s.find_last_not_of('0') + 1, std::string::npos);
 
-    if (!s.empty() && s.back() == '.')
-        s.pop_back();
+    if (!s.empty() && s.back() == '.') s.pop_back();
 
     return s;
 }

@@ -17,5 +17,4 @@ const char* sheet_get_cell_formula_ref(SheetHandle sheet, const char* cell_ref);
 
 int sheet_cols(SheetHandle sheet);
 int sheet_rows(SheetHandle sheet);
-
 }
