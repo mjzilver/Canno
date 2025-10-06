@@ -25,9 +25,7 @@ std::string Formula::set_err(const std::string& err) {
 std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
     deps.clear();
 
-    if (failed) {
-        return err_msg;
-    }
+    failed = false;
 
     if (!root) {
         return set_err("No root node");

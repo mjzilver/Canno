@@ -13,8 +13,8 @@ Sheet::Sheet() {}
 
 void Sheet::init_cells() {
     std::shared_ptr<Sheet> self = shared_from_this();
-    for (int x = 0; x < CELL_WIDTH; ++x) {
-        for (int y = 0; y < CELL_HEIGHT; ++y) {
+    for (int x = 0; x < SHEET_COLS; ++x) {
+        for (int y = 0; y < SHEET_ROWS; ++y) {
             cells[x][y] = std::make_unique<Cell>(self);
         }
     }
@@ -30,7 +30,7 @@ bool Sheet::parse_int(const std::string& str, int& out) {
 }
 
 bool Sheet::set_cell(int col, int row, const std::string& value) {
-    if (col >= 0 && col < CELL_WIDTH && row >= 0 && row < CELL_HEIGHT) {
+    if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
         cells[col][row]->set_value(value);
         return true;
     }
@@ -44,7 +44,7 @@ bool Sheet::set_cell(const std::string& cell_ref, const std::string& value) {
 }
 
 std::shared_ptr<Cell> Sheet::get_cell(int col, int row) {
-    if (col >= 0 && col < CELL_WIDTH && row >= 0 && row < CELL_HEIGHT) {
+    if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
         return cells[col][row];
     }
     return nullptr;
@@ -57,7 +57,7 @@ std::shared_ptr<Cell> Sheet::get_cell(const std::string& cell_ref) {
 }
 
 std::optional<std::string> Sheet::get_cell_val(int col, int row) {
-    if (col >= 0 && col < CELL_WIDTH && row >= 0 && row < CELL_HEIGHT) {
+    if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
         return cells[col][row]->get_value();
     }
     return std::nullopt;
@@ -70,7 +70,7 @@ std::optional<std::string> Sheet::get_cell_val(const std::string& cell_ref) {
 }
 
 std::optional<std::string> Sheet::get_cell_formula(int col, int row) {
-    if (col >= 0 && col < CELL_WIDTH && row >= 0 && row < CELL_HEIGHT) {
+    if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
         return cells[col][row]->get_formula();
     }
     return std::nullopt;

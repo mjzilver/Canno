@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 
 #include "Formula.hpp"
 #include "Sheet.hpp"
@@ -16,7 +17,12 @@ std::string Cell::get_value() {
     return value;
 }
 
-std::optional<std::string> Cell::get_formula() { return formula->get_text(); }
+std::optional<std::string> Cell::get_formula() {
+    if (!formula.has_value()) {
+        return std::nullopt;
+    }
+    return formula->get_text();
+}
 
 void Cell::set_value(const std::string& val) {
     if (!val.empty() && val[0] == '=') {
@@ -64,7 +70,7 @@ void Cell::add_parent(const std::shared_ptr<Cell>& parent) {
 }
 
 std::string Cell::compute_value() {
-    if (!formula) {
+    if (!formula.has_value()) {
         return value;
     }
 

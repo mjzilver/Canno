@@ -1,4 +1,5 @@
 #pragma once
+
 #include <array>
 #include <memory>
 #include <optional>
@@ -9,8 +10,8 @@ class Cell;
 
 class Sheet : public std::enable_shared_from_this<Sheet> {
 public:
-    static constexpr int CELL_WIDTH = 50;
-    static constexpr int CELL_HEIGHT = 50;
+    static constexpr int SHEET_COLS = 50;
+    static constexpr int SHEET_ROWS = 50;
 
     Sheet();
     void init_cells();
@@ -26,7 +27,7 @@ public:
     std::optional<std::string> get_cell_formula(const std::string& cell_ref);
 
 private:
-    std::array<std::array<std::shared_ptr<Cell>, CELL_HEIGHT>, CELL_WIDTH> cells;
+    std::array<std::array<std::shared_ptr<Cell>, SHEET_ROWS>, SHEET_COLS> cells;
 
     bool parse_int(const std::string& str, int& out);
     std::optional<std::pair<int, int>> cell_ref_to_indices(const std::string& cell_ref);
