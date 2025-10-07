@@ -15,7 +15,7 @@ LIB := $(BIN_DIR)/libcanno.so
 
 .PHONY: all clean
 
-all: $(EXEC) $(LIB)
+all: py
 
 $(LIB): $(OBJ_FILES) | $(BIN_DIR)
 	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
