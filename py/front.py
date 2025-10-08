@@ -57,7 +57,7 @@ def draw_sheet():
     for r in range(rows):
         for c in range(cols):
             val = canno.get_cell_val(c, r)
-            e = tk.Entry(scrollable_frame, width=10)
+            e = tk.Entry(scrollable_frame, width=15)
             e.grid(row=r + 1, column=c + 1)
             e.insert(0, val)
             entries[(r, c)] = e

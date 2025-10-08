@@ -4,7 +4,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <utility>
 
 class Cell;
 
@@ -28,7 +27,4 @@ public:
 
 private:
     std::array<std::array<std::shared_ptr<Cell>, SHEET_ROWS>, SHEET_COLS> cells;
-
-    bool parse_int(const std::string& str, int& out);
-    std::optional<std::pair<int, int>> cell_ref_to_indices(const std::string& cell_ref);
 };

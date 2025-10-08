@@ -1,13 +1,11 @@
 #include "Sheet.hpp"
 
 #include <cctype>
-#include <charconv>
-#include <cstddef>
-#include <iostream>
 #include <memory>
 #include <optional>
 
 #include "Cell.hpp"
+#include "Utils.hpp"
 
 Sheet::Sheet() {}
 
@@ -18,15 +16,6 @@ void Sheet::init_cells() {
             cells[x][y] = std::make_unique<Cell>(self);
         }
     }
-}
-
-bool Sheet::parse_int(const std::string& str, int& out) {
-    auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), out);
-    if (ec != std::errc()) {
-        std::cerr << "Could not parse int: '" << str << "'\n";
-        return false;
-    }
-    return true;
 }
 
 bool Sheet::set_cell(int col, int row, const std::string& value) {
@@ -79,28 +68,4 @@ std::optional<std::string> Sheet::get_cell_formula(const std::string& cell_ref) 
     auto indices = cell_ref_to_indices(cell_ref);
     if (!indices.has_value()) return std::nullopt;
     return get_cell_formula(indices->first, indices->second);
-}
-
-std::optional<std::pair<int, int>> Sheet::cell_ref_to_indices(const std::string& cell_ref) {
-    int col = 0;
-    int row = 0;
-    size_t i = 0;
-
-    while (i < cell_ref.size() && std::isalpha(cell_ref[i])) {
-        char c = std::toupper(cell_ref[i]);
-        col = col * 26 + (c - 'A' + 1);
-        ++i;
-    }
-
-    if (!parse_int(cell_ref.substr(i), row)) {
-        std::cerr << "Invalid row in cell reference: " << cell_ref << "\n";
-        return std::nullopt;
-    }
-
-    if (col == 0 || row == 0) {
-        std::cerr << "Invalid cell reference format: " << cell_ref << "\n";
-        return std::nullopt;
-    }
-
-    return std::pair{col - 1, row - 1};
 }

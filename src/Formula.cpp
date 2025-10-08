@@ -2,15 +2,14 @@
 
 #include <cctype>
 #include <cstddef>
-#include <iomanip>
-#include <iostream>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "Cell.hpp"
 #include "Sheet.hpp"
+#include "Utils.hpp"
 
 Formula::Formula(const std::shared_ptr<Cell>& cell, const std::string& expr) {
     text = expr;
@@ -31,6 +30,9 @@ std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
     failed = false;
 
     if (!root) {
+        if (!err_msg.empty()) {
+            return err_msg;
+        }
         return set_err("No root node");
     }
 
@@ -52,16 +54,69 @@ std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::share
     }
 }
 
-std::string Formula::pretty_print_double(double d) {
-    std::ostringstream ss;
-    ss << std::fixed << std::setprecision(10) << d;
-    std::string s = ss.str();
+std::string Formula::evaluate_func(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
+    std::vector<std::shared_ptr<Node>> expanded_args;
 
-    s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+    for (auto& arg : node->args) {
+        if (arg->type == Node::Type::CELL_RANGE) {
+            auto nodes = evaluate_range(arg);
+            expanded_args.insert(expanded_args.end(), nodes.begin(), nodes.end());
+        } else {
+            expanded_args.push_back(arg);
+        }
+    }
 
-    if (!s.empty() && s.back() == '.') s.pop_back();
+    if (node->value == "SUM") {
+        double total = 0.0;
+        for (std::shared_ptr<Node> arg : expanded_args) {
+            auto arg_val = evaluate_node(sheet, arg);
+            double node_double;
+            if (parse_double(arg_val, node_double)) {
+                total += node_double;
+            } else {
+                return set_err("Expected number");
+            }
+        }
 
-    return s;
+        return pretty_print_double(total);
+    } else if (node->value == "AVG") {
+        double total = 0.0;
+        for (std::shared_ptr<Node> arg : expanded_args) {
+            auto arg_val = evaluate_node(sheet, arg);
+            double node_double;
+            if (parse_double(arg_val, node_double)) {
+                total += node_double;
+            } else {
+                return set_err("Expected number");
+            }
+        }
+
+        return pretty_print_double(total / expanded_args.size());
+    }
+    return set_err("Unknown function");
+}
+
+std::vector<std::shared_ptr<Node>> Formula::evaluate_range(std::shared_ptr<Node> node) {
+    auto delim_pos = node->value.find(':');
+    if (delim_pos == std::string::npos) {
+        throw std::runtime_error("Cell range must contain ':'");
+    }
+    std::string first = node->value.substr(0, delim_pos);
+    std::string second = node->value.substr(delim_pos + 1);
+
+    auto f_cell_i = cell_ref_to_indices(first);
+    auto s_cell_i = cell_ref_to_indices(second);
+
+    std::vector<std::shared_ptr<Node>> node_collection;
+
+    for (int x = f_cell_i->first; x <= s_cell_i->first; ++x) {
+        for (int y = f_cell_i->second; y <= s_cell_i->second; ++y) {
+            std::string ref_name = indices_to_cell_ref(x, y);
+            node_collection.push_back(std::make_shared<Node>(Node::Type::CELL_REF, ref_name));
+        }
+    }
+
+    return node_collection;
 }
 
 std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
@@ -81,6 +136,8 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
         } else {
             return set_err("unknown ref " + node->value);
         }
+    } else if (node->type == Node::Type::CELL_RANGE) {
+        return set_err("Invalid cell range context");
     } else if (node->type == Node::Type::ADD) {
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a + b; });
     } else if (node->type == Node::Type::SUBTRACT) {
@@ -89,6 +146,8 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a * b; });
     } else if (node->type == Node::Type::DIVIDE) {
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a / b; });
+    } else if (node->type == Node::Type::FUNCTION) {
+        return evaluate_func(sheet, node);
     }
 
     return set_err("Unexpected node type");
@@ -156,7 +215,20 @@ void Formula::tokenize(const std::string& expr) {
                     ++i;
                     cell_val += expr[i];
                 }
-                tokens.push_back({Token::CELL_REF_TOK, cell_val});
+
+                if (expr[i + 1] == ':') {
+                    ++i;
+                    cell_val += expr[i];
+                    // consume until it is not alpanumeric
+                    while (i + 1 < expr.size() && std::isalnum(expr[i + 1])) {
+                        ++i;
+                        cell_val += expr[i];
+                    }
+                    tokens.push_back({Token::CELL_RANGE_TOK, cell_val});
+                } else {
+                    tokens.push_back({Token::CELL_REF_TOK, cell_val});
+                }
+
                 continue;
             } else {
                 tokens.push_back({Token::FUNC_TOK, cell_val});
@@ -222,17 +294,43 @@ std::shared_ptr<Node> Formula::parse_factor() {
     }
 
     const auto& tok = peek();
-    // if num
+
     if (tok.type == Token::NUM_TOK) {
         advance();
         return std::make_shared<Node>(Node::Type::NUMBER, tok.value);
     }
-    // if cell ref
     if (tok.type == Token::CELL_REF_TOK) {
         advance();
         return std::make_shared<Node>(Node::Type::CELL_REF, tok.value);
     }
-    // TODO: function & parens
+    if (tok.type == Token::CELL_RANGE_TOK) {
+        advance();
+        return std::make_shared<Node>(Node::Type::CELL_RANGE, tok.value);
+    }
+    if (tok.type == Token::FUNC_TOK) {
+        advance();
+        auto func_node = std::make_shared<Node>(Node::Type::FUNCTION, tok.value);
+
+        if (!match({Token::LPAR_TOK})) {
+            set_err("Expected '(' after function name");
+            return nullptr;
+        }
+
+        if (!check(Token::RPAR_TOK)) {
+            do {
+                func_node->args.push_back(parse_expression());
+            } while (match({Token::COMM_TOK}));
+        }
+
+        if (!match({Token::RPAR_TOK})) {
+            set_err("Expected ')' after function arguments");
+            return nullptr;
+        }
+
+        return func_node;
+    }
+
+    // TODO: parens
 
     set_err("unexpected token '" + tok.value + "'");
     return nullptr;
@@ -248,6 +346,11 @@ bool Formula::match(std::initializer_list<Token> types) {
         }
     }
     return false;
+}
+
+bool Formula::check(Token type) const {
+    if (at_end()) return false;
+    return peek().type == type;
 }
 
 const TokenData& Formula::advance() {
@@ -271,6 +374,17 @@ void Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node>
 
     calc_node_deps(sheet, node->left);
     calc_node_deps(sheet, node->right);
+
+    for (auto& arg : node->args) {
+        calc_node_deps(sheet, arg);
+    }
+
+    if (node->type == Node::Type::CELL_RANGE) {
+        auto cells = evaluate_range(node);
+        for (auto& cell_ref : cells) {
+            calc_node_deps(sheet, cell_ref);
+        }
+    }
 }
 
 std::vector<std::shared_ptr<Cell>> Formula::calc_deps(std::shared_ptr<Sheet> sheet) {

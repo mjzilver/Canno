@@ -10,18 +10,19 @@ class Cell;
 class Sheet;
 
 enum class Token {
-    NUM_TOK,       // 12 or 12.12 or .012
-    STR_TOK,       // "string"
-    EQ_TOK,        // =
-    MIN_TOK,       // +
-    PLUS_TOK,      // -
-    DIV_TOK,       // /
-    MULT_TOK,      // *
-    COMM_TOK,      // ,
-    LPAR_TOK,      // (
-    RPAR_TOK,      // )
-    CELL_REF_TOK,  // A1
-    FUNC_TOK       // SUM
+    NUM_TOK,         // 12 or 12.12 or .012
+    STR_TOK,         // "string"
+    EQ_TOK,          // =
+    MIN_TOK,         // +
+    PLUS_TOK,        // -
+    DIV_TOK,         // /
+    MULT_TOK,        // *
+    COMM_TOK,        // ,
+    LPAR_TOK,        // (
+    RPAR_TOK,        // )
+    CELL_REF_TOK,    // A1
+    CELL_RANGE_TOK,  // A1:A3
+    FUNC_TOK         // SUM
 };
 
 struct TokenData {
@@ -31,9 +32,10 @@ struct TokenData {
 
 struct Node {
     enum class Type {
-        NUMBER,    // float
-        STRING,    // string
-        CELL_REF,  // ptr
+        NUMBER,      // float
+        STRING,      // string
+        CELL_REF,    // ptr
+        CELL_RANGE,  // []
         FUNCTION,
         ADD,
         SUBTRACT,
@@ -43,6 +45,7 @@ struct Node {
     std::string value;
     std::shared_ptr<Node> left;
     std::shared_ptr<Node> right;
+    std::vector<std::shared_ptr<Node>> args;
 
     Node(Type t, const std::string& val) : type(t), value(val) {}
 
@@ -76,9 +79,12 @@ private:
     void tokenize(const std::string& expr);
 
     std::string set_err(const std::string& err);
+
     std::string evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
+    std::string evaluate_func(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
     std::string evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
                                    std::shared_ptr<Node> right, const std::function<double(double, double)>& op);
+    std::vector<std::shared_ptr<Node>> evaluate_range(std::shared_ptr<Node> node);
 
     std::shared_ptr<Node> parse_expression();
     std::shared_ptr<Node> parse_term();
@@ -89,8 +95,7 @@ private:
     const TokenData& peek() const;
     const TokenData& previous() const;
     bool at_end() const;
+    bool check(Token type) const;
 
     void calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
-
-    std::string pretty_print_double(double d);
 };
