@@ -55,45 +55,57 @@ std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::share
 }
 
 std::string Formula::evaluate_func(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
-    std::vector<std::shared_ptr<Node>> expanded_args;
-
+    // Flatten any ranges into individual CELL_REF nodes
+    std::vector<std::shared_ptr<Node>> args;
     for (auto& arg : node->args) {
         if (arg->type == Node::Type::CELL_RANGE) {
-            auto nodes = evaluate_range(arg);
-            expanded_args.insert(expanded_args.end(), nodes.begin(), nodes.end());
+            auto range_nodes = evaluate_range(arg);
+            args.insert(args.end(), range_nodes.begin(), range_nodes.end());
         } else {
-            expanded_args.push_back(arg);
+            args.push_back(arg);
         }
     }
+
+    auto get_numeric_values =
+        [&](const std::vector<std::shared_ptr<Node>>& nodes) -> std::optional<std::vector<double>> {
+        std::vector<double> values;
+        for (auto& n : nodes) {
+            auto val_str = evaluate_node(sheet, n);
+            double val;
+            if (!parse_double(val_str, val)) return std::nullopt;
+            values.push_back(val);
+        }
+        return values;
+    };
+
+    auto numeric_vals_opt = get_numeric_values(args);
+    if (!numeric_vals_opt.has_value()) return set_err("Expected number");
+    const auto& numeric_vals = numeric_vals_opt.value();
 
     if (node->value == "SUM") {
         double total = 0.0;
-        for (std::shared_ptr<Node> arg : expanded_args) {
-            auto arg_val = evaluate_node(sheet, arg);
-            double node_double;
-            if (parse_double(arg_val, node_double)) {
-                total += node_double;
-            } else {
-                return set_err("Expected number");
-            }
-        }
-
+        for (double v : numeric_vals) total += v;
         return pretty_print_double(total);
     } else if (node->value == "AVG") {
+        if (numeric_vals.empty()) return set_err("No values to average");
         double total = 0.0;
-        for (std::shared_ptr<Node> arg : expanded_args) {
-            auto arg_val = evaluate_node(sheet, arg);
-            double node_double;
-            if (parse_double(arg_val, node_double)) {
-                total += node_double;
-            } else {
-                return set_err("Expected number");
-            }
-        }
-
-        return pretty_print_double(total / expanded_args.size());
+        for (double v : numeric_vals) total += v;
+        return pretty_print_double(total / numeric_vals.size());
+    } else if (node->value == "MIN") {
+        if (numeric_vals.empty()) return set_err("No values for MIN");
+        double min_val = numeric_vals[0];
+        for (double v : numeric_vals) min_val = std::min(min_val, v);
+        return pretty_print_double(min_val);
+    } else if (node->value == "MAX") {
+        if (numeric_vals.empty()) return set_err("No values for MAX");
+        double max_val = numeric_vals[0];
+        for (double v : numeric_vals) max_val = std::max(max_val, v);
+        return pretty_print_double(max_val);
+    } else if (node->value == "COUNT") {
+        return std::to_string(numeric_vals.size());
     }
-    return set_err("Unknown function");
+
+    return set_err("Unknown function: " + node->value);
 }
 
 std::vector<std::shared_ptr<Node>> Formula::evaluate_range(std::shared_ptr<Node> node) {
