@@ -14,5 +14,5 @@ Engine written in C++ and GUI in Python using Tkinter.
 - [ ] `Frontend updates only changed cells`
 - [X] `Error handling`
 - [ ] `Circular dependency detection`
-- [ ] `Range and formulas =SUM(A1:A5)`
+- [X] `Ranges =SUM(A1:A5)`
 - [ ] `Saving & loading from file`
