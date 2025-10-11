@@ -8,7 +8,7 @@ Engine written in C++ and GUI in Python using Tkinter.
 - [X] `Formulas`
     - [X] `Cell references`
     - [X] `Binary operations`
-    - [ ] `Functions`
+    - [X] `Functions`
     - [ ] `Parentheses`
 - [X] `Graph dependency tree`
 - [ ] `Frontend updates only changed cells`
