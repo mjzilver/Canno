@@ -71,6 +71,4 @@ std::string indices_to_cell_ref(int col, int row) {
     return col_str + std::to_string(row + 1);
 }
 
-bool roughly_equal(double a, double b, double epsilon) {
-    return std::fabs(a - b) < epsilon;
-}
+bool roughly_equal(double a, double b, double epsilon) { return std::fabs(a - b) < epsilon; }
