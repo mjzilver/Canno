@@ -10,8 +10,8 @@ class Cell;
 class Sheet;
 
 enum class Token {
-    NUM_TOK,         // 12 or 12.12 or .012
-    STR_TOK,         // "string"
+    NUM_TOK,         // 11.11
+    STR_TOK,         // string
     EQ_TOK,          // =
     MIN_TOK,         // +
     PLUS_TOK,        // -
@@ -32,10 +32,10 @@ struct TokenData {
 
 struct Node {
     enum class Type {
-        NUMBER,      // float
+        NUMBER,      // double
         STRING,      // string
         CELL_REF,    // ptr
-        CELL_RANGE,  // []
+        CELL_RANGE,  // array of ptrs
         FUNCTION,
         ADD,
         SUBTRACT,

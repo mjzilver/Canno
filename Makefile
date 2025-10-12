@@ -46,7 +46,12 @@ tidy:
 # Python frontend
 # ---------
 PYTHON := $(shell command -v python3 || command -v python)
+PY_FILES := $(shell find py -name "*.py")
 
 .PHONY: py
 py: $(LIB)
 	$(PYTHON) py/front.py
+
+.PHONY: pyformat
+pyformat:
+	black $(PY_FILES)

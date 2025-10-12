@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 
 #include <charconv>
+#include <cmath>
 #include <iomanip>
 #include <ios>
 #include <iostream>
@@ -68,4 +69,8 @@ std::string indices_to_cell_ref(int col, int row) {
     }
 
     return col_str + std::to_string(row + 1);
+}
+
+bool roughly_equal(double a, double b, double epsilon) {
+    return std::fabs(a - b) < epsilon;
 }

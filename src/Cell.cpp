@@ -7,7 +7,7 @@
 #include "Formula.hpp"
 #include "Sheet.hpp"
 
-Cell::Cell(std::shared_ptr<Sheet> sheet) : sheet(sheet) {}
+Cell::Cell(std::shared_ptr<Sheet> sheet, int col, int row) : row(row), col(col), sheet(sheet) {}
 
 std::string Cell::get_value() {
     if (dirty && formula.has_value()) {

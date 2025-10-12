@@ -1,6 +1,5 @@
 #include "Sheet.hpp"
 
-#include <cctype>
 #include <memory>
 #include <optional>
 
@@ -11,9 +10,9 @@ Sheet::Sheet() {}
 
 void Sheet::init_cells() {
     std::shared_ptr<Sheet> self = shared_from_this();
-    for (int x = 0; x < SHEET_COLS; ++x) {
-        for (int y = 0; y < SHEET_ROWS; ++y) {
-            cells[x][y] = std::make_unique<Cell>(self);
+    for (int col = 0; col < SHEET_COLS; col++) {
+        for (int row = 0; row < SHEET_ROWS; row++) {
+            cells[col][row] = std::make_unique<Cell>(self, col, row);
         }
     }
 }
@@ -64,6 +63,7 @@ std::optional<std::string> Sheet::get_cell_formula(int col, int row) {
     }
     return std::nullopt;
 }
+
 std::optional<std::string> Sheet::get_cell_formula(const std::string& cell_ref) {
     auto indices = cell_ref_to_indices(cell_ref);
     if (!indices.has_value()) return std::nullopt;

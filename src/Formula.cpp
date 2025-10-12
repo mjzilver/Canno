@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <cstddef>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -30,6 +31,7 @@ std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
     failed = false;
 
     if (!root) {
+        std::cout << "No root\n";
         if (!err_msg.empty()) {
             return err_msg;
         }
@@ -44,13 +46,12 @@ std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::share
     auto left_val = evaluate_node(sheet, left);
     auto right_val = evaluate_node(sheet, right);
 
-    try {
-        double l = std::stod(left_val);
-        double r = std::stod(right_val);
-
+    double l = 0;
+    double r = 0;
+    if (parse_double(left_val, l) && parse_double(right_val, r)) {
         return pretty_print_double(op(l, r));
-    } catch (...) {
-        return set_err("Invalid binary operation");
+    } else {
+        return set_err("Cannot parse " + left_val + " or " + right_val);
     }
 }
 
@@ -157,6 +158,10 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
     } else if (node->type == Node::Type::MULTIPLY) {
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a * b; });
     } else if (node->type == Node::Type::DIVIDE) {
+        double right_d = 0;
+        if (parse_double(node->right->value, right_d) && roughly_equal(right_d, 0.0)) {
+            return set_err("Divide by zero");
+        }
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a / b; });
     } else if (node->type == Node::Type::FUNCTION) {
         return evaluate_func(sheet, node);

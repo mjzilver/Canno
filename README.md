@@ -11,7 +11,7 @@ Engine written in C++ and GUI in Python using Tkinter.
     - [X] `Functions`
     - [ ] `Parentheses`
 - [X] `Graph dependency tree`
-- [ ] `Frontend updates only changed cells`
+- [X] `Frontend updates only updates changed cells`
 - [X] `Error handling`
 - [ ] `Circular dependency detection`
 - [X] `Ranges =SUM(A1:A5)`

@@ -9,7 +9,7 @@ rows = canno.rows()
 
 root = tk.Tk()
 root.title("Canno Spreadsheet")
-root.geometry("800x600") 
+root.geometry("800x600")
 
 frame = tk.Frame(root)
 frame.pack(expand=True, fill="both")
@@ -20,10 +20,7 @@ scrollbar_x = tk.Scrollbar(frame, orient="horizontal", command=canvas.xview)
 scrollable_frame = tk.Frame(canvas)
 
 scrollable_frame.bind(
-    "<Configure>",
-    lambda e: canvas.configure(
-        scrollregion=canvas.bbox("all")
-    )
+    "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
 )
 
 canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
@@ -38,20 +35,27 @@ frame.grid_columnconfigure(0, weight=1)
 
 entries = {}
 
+
 def col_label(index):
     label = ""
     while index >= 0:
-        label = chr(ord('A') + index % 26) + label
+        label = chr(ord("A") + index % 26) + label
         index = index // 26 - 1
     return label
 
+
 for c in range(cols):
-    label = tk.Label(scrollable_frame, text=col_label(c), borderwidth=1, relief="raised", width=10)
-    label.grid(row=0, column=c+1, sticky="nsew")
+    label = tk.Label(
+        scrollable_frame, text=col_label(c), borderwidth=1, relief="raised", width=10
+    )
+    label.grid(row=0, column=c + 1, sticky="nsew")
 
 for r in range(rows):
-    label = tk.Label(scrollable_frame, text=str(r+1), borderwidth=1, relief="raised", width=4)
-    label.grid(row=r+1, column=0, sticky="nsew")
+    label = tk.Label(
+        scrollable_frame, text=str(r + 1), borderwidth=1, relief="raised", width=4
+    )
+    label.grid(row=r + 1, column=0, sticky="nsew")
+
 
 def draw_sheet():
     for r in range(rows):
@@ -64,23 +68,31 @@ def draw_sheet():
             e.bind("<FocusOut>", lambda event, row=r, col=c: save_cell(event, row, col))
             e.bind("<FocusIn>", lambda event, row=r, col=c: enter_cell(event, row, col))
 
-def update_sheet():
-    for r in range(rows):
-        for c in range(cols):
-            val = canno.get_cell_val(c, r)
-            entries[(r, c)].delete(0, tk.END)
-            entries[(r, c)].insert(0, val)
 
-def enter_cell(event, row, col):
-    formula = canno.get_cell_formula( col, row)
+def update_deps(deps):
+    [update_cell(c, r) for c, r in deps]
+
+
+def update_cell(col, row):
+    val = canno.get_cell_val(col, row)
+    entries[(row, col)].delete(0, tk.END)
+    entries[(row, col)].insert(0, val)
+
+
+def enter_cell(_, row, col):
+    formula = canno.get_cell_formula(col, row)
     if formula:
         entries[(row, col)].delete(0, tk.END)
         entries[(row, col)].insert(0, formula)
 
-def save_cell(event, row, col):
+
+def save_cell(_, row, col):
     value = entries[(row, col)].get()
     canno.set_cell(col, row, value)
-    update_sheet()
+
+    update_cell(col, row)
+    update_deps(canno.get_cell_deps(col, row))
+
 
 draw_sheet()
 root.mainloop()

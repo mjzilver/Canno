@@ -9,7 +9,7 @@
 
 class Cell : public std::enable_shared_from_this<Cell> {
 public:
-    explicit Cell(std::shared_ptr<Sheet> parent_sheet);
+    explicit Cell(std::shared_ptr<Sheet> parent_sheet, int col, int row);
 
     std::string get_value();
     void set_value(const std::string& val);
@@ -18,7 +18,14 @@ public:
     void mark_dirty();
     void add_parent(const std::shared_ptr<Cell>& parent);
 
+    std::vector<std::shared_ptr<Cell>> get_dependencies() const { return parents; }
+
+    int get_row() { return row; };
+    int get_col() { return col; }
+
 private:
+    int row, col;
+
     std::shared_ptr<Sheet> sheet;
     std::string compute_value();
     std::string value;
