@@ -18,7 +18,7 @@ public:
     void mark_dirty();
     void add_parent(const std::shared_ptr<Cell>& parent);
 
-    std::vector<std::shared_ptr<Cell>> get_dependencies() const { return parents; }
+    std::vector<std::shared_ptr<Cell>> get_dependencies() const { return children; }
 
     int get_row() { return row; };
     int get_col() { return col; }
