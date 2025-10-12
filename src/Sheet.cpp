@@ -59,7 +59,7 @@ std::optional<std::string> Sheet::get_cell_val(const std::string& cell_ref) {
 
 std::optional<std::string> Sheet::get_cell_formula(int col, int row) {
     if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
-        return cells[col][row]->get_formula();
+        return cells[col][row]->get_formula_val();
     }
     return std::nullopt;
 }

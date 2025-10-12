@@ -2,10 +2,10 @@
 
 #include <cctype>
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "Cell.hpp"
@@ -28,17 +28,32 @@ std::string Formula::set_err(const std::string& err) {
 std::string Formula::evaluate(std::shared_ptr<Sheet> sheet) {
     deps.clear();
 
-    failed = false;
-
-    if (!root) {
-        std::cout << "No root\n";
-        if (!err_msg.empty()) {
+    if(failed) {
+        deps = calc_deps(sheet);
+        if (failed) {
             return err_msg;
         }
-        return set_err("No root node");
     }
 
     return evaluate_node(sheet, root);
+}
+
+std::string Formula::evaluate_division(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,  std::shared_ptr<Node> right) {
+    auto left_val = evaluate_node(sheet, left);
+    auto right_val = evaluate_node(sheet, right);
+
+    double l = 0;
+    double r = 0;
+    if (parse_double(left_val, l) && parse_double(right_val, r)) {
+
+        if (roughly_equal(r, 0.0)) {
+            return set_err("Divide by zeor");
+        }
+
+        return pretty_print_double( l / r);
+    } else {
+        return set_err("Cannot parse " + left_val + " or " + right_val);
+    }
 }
 
 std::string Formula::evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
@@ -141,10 +156,6 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
         std::shared_ptr<Cell> ref_cell = sheet->get_cell(node->value);
 
         if (ref_cell != nullptr) {
-            if (ref_cell == containing_cell) {
-                return set_err("Circular ref");
-            }
-
             return ref_cell->get_value();
         } else {
             return set_err("unknown ref " + node->value);
@@ -158,11 +169,7 @@ std::string Formula::evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr
     } else if (node->type == Node::Type::MULTIPLY) {
         return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a * b; });
     } else if (node->type == Node::Type::DIVIDE) {
-        double right_d = 0;
-        if (parse_double(node->right->value, right_d) && roughly_equal(right_d, 0.0)) {
-            return set_err("Divide by zero");
-        }
-        return evaluate_binary_op(sheet, node->left, node->right, [](double a, double b) { return a / b; });
+        return evaluate_division(sheet, node->left, node->right);
     } else if (node->type == Node::Type::FUNCTION) {
         return evaluate_func(sheet, node);
     }
@@ -380,33 +387,54 @@ const TokenData& Formula::previous() const { return tokens[current - 1]; }
 
 bool Formula::at_end() const { return current >= tokens.size(); }
 
-void Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node) {
-    if (!node) return;
+bool Formula::calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node,
+                             std::unordered_set<Cell*>& visited) {
+    if (!node) return true;
+    if (failed) return false;
 
     if (node->type == Node::Type::CELL_REF) {
         if (auto cell = sheet->get_cell(node->value)) {
+            if (visited.count(cell.get())) {
+                set_err("Circular reference detected");
+                return false;
+            }
+
             deps.push_back(cell);
+
+            if (auto cell_form = cell->get_formula()) {
+                visited.insert(cell.get());
+
+                if (auto p_root = cell_form->get_root()) {
+                    if (!calc_node_deps(sheet, cell_form->get_root(), visited)) return false;
+                } else {
+                    return true;
+                }
+
+                visited.erase(cell.get());
+            }
         }
     }
 
-    calc_node_deps(sheet, node->left);
-    calc_node_deps(sheet, node->right);
+    if (!calc_node_deps(sheet, node->left, visited)) return false;
+    if (!calc_node_deps(sheet, node->right, visited)) return false;
 
     for (auto& arg : node->args) {
-        calc_node_deps(sheet, arg);
+        if (!calc_node_deps(sheet, arg, visited)) return false;
     }
 
     if (node->type == Node::Type::CELL_RANGE) {
         auto cells = evaluate_range(node);
         for (auto& cell_ref : cells) {
-            calc_node_deps(sheet, cell_ref);
+            if (!calc_node_deps(sheet, cell_ref, visited)) return false;
         }
     }
+    return true;
 }
 
 std::vector<std::shared_ptr<Cell>> Formula::calc_deps(std::shared_ptr<Sheet> sheet) {
     if (!root) return deps;
-    calc_node_deps(sheet, root);
+    std::unordered_set<Cell*> visited;
+    calc_node_deps(sheet, root, visited);
 
     return deps;
 }

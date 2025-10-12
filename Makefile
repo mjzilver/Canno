@@ -43,6 +43,16 @@ tidy:
 	clang-tidy -p $(CPP_FILES) $(HPP_FILES) -- $(CXXFLAGS)
 
 # ---------
+# Debugging
+# ---------
+
+.PHONY: pyvalgrind
+pyvalgrind: $(LIB)
+	valgrind --leak-check=full --track-origins=yes --error-limit=no \
+		--show-leak-kinds=all --log-file=valgrind_python.log \
+		$(PYTHON) py/front.py
+
+# ---------
 # Python frontend
 # ---------
 PYTHON := $(shell command -v python3 || command -v python)

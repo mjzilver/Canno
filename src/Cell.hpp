@@ -13,7 +13,9 @@ public:
 
     std::string get_value();
     void set_value(const std::string& val);
-    std::optional<std::string> get_formula();
+
+    std::optional<Formula> get_formula() { return formula; };
+    std::optional<std::string> get_formula_val();
 
     void mark_dirty();
     void add_parent(const std::shared_ptr<Cell>& parent);

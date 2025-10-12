@@ -17,7 +17,7 @@ std::string Cell::get_value() {
     return value;
 }
 
-std::optional<std::string> Cell::get_formula() {
+std::optional<std::string> Cell::get_formula_val() {
     if (!formula.has_value()) {
         return std::nullopt;
     }

@@ -13,6 +13,6 @@ Engine written in C++ and GUI in Python using Tkinter.
 - [X] `Graph dependency tree`
 - [X] `Frontend updates only updates changed cells`
 - [X] `Error handling`
-- [ ] `Circular dependency detection`
+- [X] `Circular dependency detection`
 - [X] `Ranges =SUM(A1:A5)`
 - [ ] `Saving & loading from file`

@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 // forward declaration
@@ -62,6 +63,7 @@ public:
     std::vector<std::shared_ptr<Cell>> calc_deps(std::shared_ptr<Sheet> sheet);
 
     std::string get_text() { return text; }
+    std::shared_ptr<Node> get_root() { return root;};
 
 private:
     std::string err_msg = "";
@@ -84,6 +86,8 @@ private:
     std::string evaluate_func(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
     std::string evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
                                    std::shared_ptr<Node> right, const std::function<double(double, double)>& op);
+    std::string evaluate_division(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,  std::shared_ptr<Node> right);
+
     std::vector<std::shared_ptr<Node>> evaluate_range(std::shared_ptr<Node> node);
 
     std::shared_ptr<Node> parse_expression();
@@ -97,5 +101,5 @@ private:
     bool at_end() const;
     bool check(Token type) const;
 
-    void calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
+    bool calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node, std::unordered_set<Cell*>& visited);
 };
