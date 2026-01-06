@@ -1,67 +1,17 @@
-CXX := g++
-CXXFLAGS := -std=c++17 -O2 -Wall -fPIC
-LIBFLAGS := -shared
+.PHONY: all run core ui py clean
 
-SRC_DIR := src
-OBJ_DIR := obj
-BIN_DIR := bin
+all: core ui py
 
-CPP_FILES := $(shell find $(SRC_DIR) -name "*.cpp")
-HPP_FILES := $(shell find $(SRC_DIR) -name "*.hpp")
+core:
+	$(MAKE) -C core
 
-OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_FILES))
+ui: core
+	$(MAKE) -C ui
 
-LIB := $(BIN_DIR)/libcanno.so
-
-.PHONY: all clean
-
-all: py
-
-$(LIB): $(OBJ_FILES) | $(BIN_DIR)
-	$(CXX) $(LIBFLAGS) $(CXXFLAGS) -o $@ $^
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
-
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+py: core
+	$(MAKE) -C py
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
-
-# ---------
-# Formatting
-# ---------
-
-format:
-	clang-format -i $(CPP_FILES) $(HPP_FILES)
-
-tidy:
-	clang-tidy -p $(CPP_FILES) $(HPP_FILES) -- $(CXXFLAGS)
-
-# ---------
-# Debugging
-# ---------
-
-.PHONY: pyvalgrind
-pyvalgrind: $(LIB)
-	valgrind --leak-check=full --track-origins=yes --error-limit=no \
-		--show-leak-kinds=all --log-file=valgrind_python.log \
-		$(PYTHON) py/front.py
-
-# ---------
-# Python frontend
-# ---------
-PYTHON := $(shell command -v python3 || command -v python)
-PY_FILES := $(shell find py -name "*.py")
-
-.PHONY: py
-py: $(LIB)
-	$(PYTHON) py/front.py
-
-.PHONY: pyformat
-pyformat:
-	black $(PY_FILES)
+	$(MAKE) -C core clean
+	$(MAKE) -C ui clean
+	$(MAKE) -C py clean

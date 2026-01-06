@@ -1,11 +1,11 @@
-#include "Cell.hpp"
+#include "../include/Cell.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <optional>
 
-#include "Formula.hpp"
-#include "Sheet.hpp"
+#include "../include/Formula.hpp"
+#include "../include/Sheet.hpp"
 
 Cell::Cell(std::shared_ptr<Sheet> sheet, int col, int row) : row(row), col(col), sheet(sheet) {}
 

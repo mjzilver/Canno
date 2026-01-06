@@ -1,8 +1,9 @@
 import ctypes
 
+from config import LIBCANNO_PATH
 
 class CannoFFI:
-    def __init__(self, lib_path="bin/libcanno.so"):
+    def __init__(self, lib_path=LIBCANNO_PATH):
         self.lib = ctypes.CDLL(lib_path)
         self._bind_functions()
         self.sheet = self.lib.sheet_create()

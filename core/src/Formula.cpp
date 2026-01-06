@@ -1,4 +1,4 @@
-#include "Formula.hpp"
+#include "../include/Formula.hpp"
 
 #include <cctype>
 #include <cstddef>
@@ -8,9 +8,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Cell.hpp"
-#include "Sheet.hpp"
-#include "Utils.hpp"
+#include "../include/Cell.hpp"
+#include "../include/Sheet.hpp"
+#include "../include/Utils.hpp"
 
 Formula::Formula(const std::shared_ptr<Cell>& cell, const std::string& expr) {
     text = expr;

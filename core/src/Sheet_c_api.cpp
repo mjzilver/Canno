@@ -1,12 +1,12 @@
-#include "Sheet_c_api.hpp"
+#include "../include/Sheet_c_api.hpp"
 
 #include <cstddef>
 #include <cstdlib>
 #include <memory>
 #include <string>
 
-#include "Cell.hpp"
-#include "Sheet.hpp"
+#include "../include/Cell.hpp"
+#include "../include/Sheet.hpp"
 
 extern "C" {
 

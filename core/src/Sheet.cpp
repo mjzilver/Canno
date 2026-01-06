@@ -1,10 +1,10 @@
-#include "Sheet.hpp"
+#include "../include/Sheet.hpp"
 
 #include <memory>
 #include <optional>
 
-#include "Cell.hpp"
-#include "Utils.hpp"
+#include "../include/Cell.hpp"
+#include "../include/Utils.hpp"
 
 Sheet::Sheet() {}
 
