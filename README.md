@@ -2,7 +2,7 @@
 
 Canno is a spreadsheet program.
 
-Engine written in C++ and GUI in Python using Tkinter.
+C++ Core Engine + GUI in either Python or C++ Qt.
 
 ## Features
 - [X] `Formulas`
