@@ -3,11 +3,12 @@ CXXFLAGS := -std=c++17 -O2 -Wall -fPIC
 LIBFLAGS := -shared
 
 SRC_DIR := src
+INC_DIR :+ include
 OBJ_DIR := ../obj/core
 BIN_DIR := ../bin
 
 CPP_FILES := $(shell find $(SRC_DIR) -name "*.cpp")
-HPP_FILES := $(shell find $(SRC_DIR) -name "*.hpp")
+HPP_FILES := $(shell find $(INC_DIR) -name "*.hpp")
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_FILES))
 
 LIB := $(BIN_DIR)/libcanno.so

@@ -67,10 +67,10 @@ moc: $(MOC_OBJ)
 # Formatting
 # ---------
 format:
-	clang-format -i -style=file:../.clang-format $(CPP_FILES) $(HPP_FILES)
+	clang-format -i $(CPP_FILES) $(HPP_FILES)
 
 tidy:
-	clang-tidy -p=../build $(CPP_FILES) $(HPP_FILES) --config-file=../.clang-tidy -- $(CXXFLAGS)
+	clang-tidy $(CPP_FILES) $(HPP_FILES) -- $(CXXFLAGS)
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN)

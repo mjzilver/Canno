@@ -14,9 +14,7 @@ static std::string tmp;
 
 std::unique_ptr<Sheet> sheet = std::make_unique<Sheet>();
 
-SheetHandle sheet_create() {
-    return sheet.get();
-}
+SheetHandle sheet_create() { return sheet.get(); }
 
 int sheet_set_cell(SheetHandle handle, int col, int row, const char* value) {
     return static_cast<Sheet*>(handle)->set_cell(col, row, value);
