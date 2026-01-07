@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++20 -Wall -Wextra -O2 -ggdb
+CXXFLAGS := -std=c++20 -Wall -Wextra -O2
 QT_PKGS := Qt6Widgets
 
 SRC_DIR := src
@@ -31,7 +31,6 @@ run: $(BIN)
 
 debug: $(BIN)
 	env LD_LIBRARY_PATH=$(CORE_LIB) gdb ./$(BIN)
-
 
 $(BIN): $(OBJ_FILES) $(MOC_OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS)

@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -32,67 +33,62 @@ struct TokenData {
 };
 
 struct Node {
-    enum class Type {
-        NUMBER,      // double
-        STRING,      // string
-        CELL_REF,    // ptr
-        CELL_RANGE,  // array of ptrs
-        FUNCTION,
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE
-    } type;
+    enum class Type { NUMBER, STRING, CELL_REF, CELL_RANGE, FUNCTION, ADD, SUBTRACT, MULTIPLY, DIVIDE } type;
+
     std::string value;
-    std::shared_ptr<Node> left;
-    std::shared_ptr<Node> right;
-    std::vector<std::shared_ptr<Node>> args;
 
-    Node(Type t, const std::string& val) : type(t), value(val) {}
+    std::unique_ptr<Node> left;
+    std::unique_ptr<Node> right;
+    std::vector<std::unique_ptr<Node>> args;
 
-    Node(Type t, const std::string& val, const std::shared_ptr<Node>& l, const std::shared_ptr<Node>& r)
-        : type(t), value(val), left(l), right(r) {}
+    explicit Node(Type t, std::string val) : type(t), value(std::move(val)) {}
+
+    Node(Type t, std::string val, std::unique_ptr<Node> l, std::unique_ptr<Node> r)
+        : type(t), value(std::move(val)), left(std::move(l)), right(std::move(r)) {}
 };
 
 class Formula {
 public:
-    explicit Formula(const std::shared_ptr<Cell>& cell, const std::string& expr);
+    explicit Formula(const Cell* cell, const std::string& expr);
 
-    std::string evaluate(std::shared_ptr<Sheet> sheet);
+    std::string evaluate(Sheet& sheet);
 
-    std::vector<std::shared_ptr<Cell>> calc_deps(std::shared_ptr<Sheet> sheet);
+    std::vector<Cell*> calc_deps(Sheet& sheet);
 
     std::string get_text() { return text; }
-    std::shared_ptr<Node> get_root() { return root;};
+    const Node* get_root() const { return root.get(); }
 
 private:
     std::string err_msg = "";
     bool failed = false;
     size_t current = 0;
 
-    std::shared_ptr<Cell> containing_cell = nullptr;
+    const Cell* containing_cell;
     std::string text = "";
 
-    std::shared_ptr<Node> root;
+    std::unique_ptr<Node> root;
     std::vector<TokenData> tokens;
-    std::vector<std::shared_ptr<Cell>> deps;
+    std::vector<Cell*> deps;
 
     void parse(const std::string& expr);
     void tokenize(const std::string& expr);
 
     std::string set_err(const std::string& err);
 
-    std::string evaluate_node(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
-    std::string evaluate_func(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node);
-    std::string evaluate_binary_op(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,
-                                   std::shared_ptr<Node> right, const std::function<double(double, double)>& op);
-    std::string evaluate_division(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> left,  std::shared_ptr<Node> right);
+    std::string evaluate_node(Sheet& sheet, const Node& node);
+    std::string evaluate_func(Sheet& sheet, const Node& node);
+    std::string evaluate_binary_op(Sheet& sheet, const Node& left, const Node& right,
+                                   const std::function<double(double, double)>& op);
+    std::string evaluate_division(Sheet& sheet, const Node& left, const Node& right);
 
-    std::vector<std::shared_ptr<Node>> evaluate_range(std::shared_ptr<Node> node);
+    std::vector<Node*> evaluate_range(const Node& node);
 
-    std::shared_ptr<Node> parse_expression();
-    std::shared_ptr<Node> parse_term();
-    std::shared_ptr<Node> parse_factor();
+    std::unique_ptr<Node> parse_expression();
+    std::unique_ptr<Node> parse_term();
+    std::unique_ptr<Node> parse_factor();
+
+    std::vector<Node*> flatten_range(const Node& node);
+    std::optional<std::vector<double>> get_numeric_values(Sheet& sheet, const std::vector<Node*>& nodes);
 
     bool match(std::initializer_list<Token> types);
     const TokenData& advance();
@@ -101,5 +97,5 @@ private:
     bool at_end() const;
     bool check(Token type) const;
 
-    bool calc_node_deps(std::shared_ptr<Sheet> sheet, std::shared_ptr<Node> node, std::unordered_set<Cell*>& visited);
+    bool calc_node_deps(Sheet& sheet, const Node& node, std::unordered_set<Cell*>& visited);
 };

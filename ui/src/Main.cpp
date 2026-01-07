@@ -1,6 +1,5 @@
 #include <QApplication>
 #include <QTableView>
-#include <memory>
 
 #include "Sheet.hpp"
 #include "SpreadsheetModel.hpp"
@@ -9,8 +8,7 @@ int main(int argc, char** argv) {
     QApplication app(argc, argv);
     app.setApplicationName("Canno Spreadsheet");
 
-    std::shared_ptr<Sheet> sheet = std::make_shared<Sheet>();
-    sheet->init_cells();
+    Sheet sheet;
 
     SpreadsheetModel model(sheet);
 

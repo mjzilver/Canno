@@ -12,10 +12,9 @@ extern "C" {
 
 static std::string tmp;
 
-std::shared_ptr<Sheet> sheet = std::make_shared<Sheet>();
+std::unique_ptr<Sheet> sheet = std::make_unique<Sheet>();
 
 SheetHandle sheet_create() {
-    sheet->init_cells();
     return sheet.get();
 }
 
@@ -36,7 +35,7 @@ const char* sheet_get_cell_formula(SheetHandle handle, int col, int row) {
 }
 
 int* sheet_get_cell_dependencies(SheetHandle handle, int col, int row, int* dep_count) {
-    std::shared_ptr<Cell> cell = static_cast<Sheet*>(handle)->get_cell(col, row);
+    Cell* cell = static_cast<Sheet*>(handle)->get_cell(col, row);
     if (!cell) {
         return nullptr;
     }

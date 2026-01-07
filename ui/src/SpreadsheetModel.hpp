@@ -9,10 +9,10 @@ class SpreadsheetModel : public QAbstractTableModel {
     Q_OBJECT
 
 private:
-    std::shared_ptr<Sheet> sheet;
+    Sheet& sheet;
 
 public:
-    explicit SpreadsheetModel(std::shared_ptr<Sheet> s, QObject* parent = nullptr);
+    explicit SpreadsheetModel(Sheet& s, QObject* parent = nullptr);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;

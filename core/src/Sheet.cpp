@@ -6,13 +6,10 @@
 #include "../include/Cell.hpp"
 #include "../include/Utils.hpp"
 
-Sheet::Sheet() {}
-
-void Sheet::init_cells() {
-    std::shared_ptr<Sheet> self = shared_from_this();
+Sheet::Sheet() {
     for (int col = 0; col < SHEET_COLS; col++) {
         for (int row = 0; row < SHEET_ROWS; row++) {
-            cells[col][row] = std::make_unique<Cell>(self, col, row);
+            cells[col][row] = std::make_unique<Cell>(*this, col, row);
         }
     }
 }
@@ -31,14 +28,14 @@ bool Sheet::set_cell(const std::string& cell_ref, const std::string& value) {
     return set_cell(indices->first, indices->second, value);
 }
 
-std::shared_ptr<Cell> Sheet::get_cell(int col, int row) {
+Cell* Sheet::get_cell(int col, int row) {
     if (col >= 0 && col < SHEET_COLS && row >= 0 && row < SHEET_ROWS) {
-        return cells[col][row];
+        return cells[col][row].get();
     }
     return nullptr;
 }
 
-std::shared_ptr<Cell> Sheet::get_cell(const std::string& cell_ref) {
+Cell* Sheet::get_cell(const std::string& cell_ref) {
     auto indices = cell_ref_to_indices(cell_ref);
     if (!indices.has_value()) return nullptr;
     return get_cell(indices->first, indices->second);
