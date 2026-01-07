@@ -12,7 +12,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_FILES))
 
 LIB := $(BIN_DIR)/libcanno.so
 
-.PHONY: all clean
+.PHONY: all clean debug format tidy
 
 all: $(LIB)
 
@@ -30,6 +30,15 @@ $(BIN_DIR):
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
+# ---------
+# Debug
+# ---------
+debug: CXXFLAGS += -ggdb 
+debug: $(LIB)
+
+asan: CXXFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+asan: $(LIB)
 
 # ---------
 # Formatting

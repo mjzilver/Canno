@@ -11,6 +11,7 @@ py: $(LIBCANNO) $(CONFIG)
 	$(PYTHON) front.py
 
 $(CONFIG): $(LIBCANNO)
+	rm -f $(CONFIG)
 	@echo "LIBCANNO_PATH = \"$(LIBCANNO)\"" >> $@
 
 format:

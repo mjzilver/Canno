@@ -69,10 +69,16 @@ std::string Formula::evaluate_binary_op(Sheet& sheet, const Node& left, const No
 
 std::vector<Node*> Formula::flatten_range(const Node& node) {
     std::vector<Node*> args;
+
+    range_nodes_storage.clear();
+
     for (auto& arg : node.args) {
         if (arg->type == Node::Type::CELL_RANGE) {
             auto range_nodes = evaluate_range(*arg);
-            args.insert(args.end(), range_nodes.begin(), range_nodes.end());
+            for (auto& n : range_nodes) {
+                args.push_back(n.get());
+                range_nodes_storage.push_back(std::move(n));
+            }
         } else {
             args.push_back(arg.get());
         }
@@ -123,7 +129,7 @@ std::string Formula::evaluate_func(Sheet& sheet, const Node& node) {
     return set_err("Unknown function: " + node.value);
 }
 
-std::vector<Node*> Formula::evaluate_range(const Node& node) {
+std::vector<std::unique_ptr<Node>> Formula::evaluate_range(const Node& node) {
     auto delim_pos = node.value.find(':');
     if (delim_pos == std::string::npos) throw std::runtime_error("Cell range must contain ':'");
 
@@ -133,11 +139,11 @@ std::vector<Node*> Formula::evaluate_range(const Node& node) {
     auto f_cell_i = cell_ref_to_indices(first);
     auto s_cell_i = cell_ref_to_indices(second);
 
-    std::vector<Node*> node_collection;
+    std::vector<std::unique_ptr<Node>> node_collection;
     for (int x = f_cell_i->first; x <= s_cell_i->first; ++x) {
         for (int y = f_cell_i->second; y <= s_cell_i->second; ++y) {
             std::string ref_name = indices_to_cell_ref(x, y);
-            node_collection.push_back(new Node(Node::Type::CELL_REF, ref_name));
+            node_collection.push_back(std::make_unique<Node>(Node::Type::CELL_REF, ref_name));
         }
     }
     return node_collection;

@@ -69,6 +69,7 @@ private:
     std::unique_ptr<Node> root;
     std::vector<TokenData> tokens;
     std::vector<Cell*> deps;
+    std::vector<std::unique_ptr<Node>> range_nodes_storage;
 
     void parse(const std::string& expr);
     void tokenize(const std::string& expr);
@@ -81,7 +82,7 @@ private:
                                    const std::function<double(double, double)>& op);
     std::string evaluate_division(Sheet& sheet, const Node& left, const Node& right);
 
-    std::vector<Node*> evaluate_range(const Node& node);
+    std::vector<std::unique_ptr<Node>> evaluate_range(const Node& node);
 
     std::unique_ptr<Node> parse_expression();
     std::unique_ptr<Node> parse_term();

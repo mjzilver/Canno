@@ -1,4 +1,4 @@
-.PHONY: all run core ui py clean
+.PHONY: all run core ui py debug asan clean
 
 all: core ui py
 
@@ -10,6 +10,14 @@ ui: core
 
 py: core
 	$(MAKE) -C py
+
+debug:
+	$(MAKE) -C core debug
+	$(MAKE) -C ui debug
+
+asan:
+	$(MAKE) -C core asan
+	$(MAKE) -C ui asan
 
 clean:
 	$(MAKE) -C core clean

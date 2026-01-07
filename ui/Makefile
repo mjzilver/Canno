@@ -22,31 +22,43 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_FILES))
 MOC_SRC := $(patsubst $(SRC_DIR)/%.hpp,$(OBJ_DIR)/%.moc.cpp,$(HPP_FILES))
 MOC_OBJ := $(patsubst %.moc.cpp,%.moc.o,$(MOC_SRC))
 
-.PHONY: all run debug clean  moc format tidy
+.PHONY: all run debug asan clean moc format tidy
 
 all: run
 
 run: $(BIN)
 	LD_LIBRARY_PATH=$(CORE_LIB) $(BIN)
 
-debug: $(BIN)
-	env LD_LIBRARY_PATH=$(CORE_LIB) gdb ./$(BIN)
-
 $(BIN): $(OBJ_FILES) $(MOC_OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# ---------
+# Debug
+# ---------
+debug: CXXFLAGS += -ggdb 
+
+debug: $(BIN)
+	env LD_LIBRARY_PATH=$(CORE_LIB) gdb ./$(BIN)
+
+asan: CXXFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+asan: LDFLAGS  += -fsanitize=address
+
+asan: $(BIN)
+	LD_LIBRARY_PATH=$(CORE_LIB) $(BIN)
 
 # ---------
 # MOC
 # ---------
-$(OBJ_DIR)/%.moc.cpp: $(SRC_DIR)/%.hpp
-	@mkdir -p $(OBJ_DIR)
+$(OBJ_DIR)/%.moc.cpp: $(SRC_DIR)/%.hpp | $(OBJ_DIR)
 	$(MOC) $< -o $@
 
-$(OBJ_DIR)/%.moc.o: $(OBJ_DIR)/%.moc.cpp
+$(OBJ_DIR)/%.moc.o: $(OBJ_DIR)/%.moc.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 moc: $(MOC_OBJ)
