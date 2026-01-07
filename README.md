@@ -15,4 +15,4 @@ C++ Core Engine + GUI in either Python or C++ Qt.
 - [X] `Error handling`
 - [X] `Circular dependency detection`
 - [X] `Ranges =SUM(A1:A5)`
-- [ ] `Saving & loading from file`
+- [X] `Saving & loading from file`

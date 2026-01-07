@@ -8,13 +8,15 @@
 
 class Cell {
 public:
-    explicit Cell(Sheet& parent_sheet, int col, int row);
+    explicit Cell(Sheet& parent_sheet, int row, int col);
 
     std::string get_value();
     void set_value(const std::string& val);
 
     Formula* get_formula() { return formula ? &*formula : nullptr; }
     std::optional<std::string> get_formula_val();
+
+    std::string get_formula_or_value();
 
     void mark_dirty();
     void add_parent(Cell* parent);
@@ -23,6 +25,8 @@ public:
 
     int get_row() { return row; };
     int get_col() { return col; }
+
+    bool has_formula() { return formula.has_value(); };
 
 private:
     int row, col;

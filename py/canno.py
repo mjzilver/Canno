@@ -41,27 +41,27 @@ class CannoFFI:
         ]
         self.lib.sheet_get_cell_dependencies.restype = ctypes.POINTER(ctypes.c_int)
 
-        self.lib.sheet_cols.argtypes = [ctypes.c_void_p]
+        self.lib.sheet_cols.argtypes = [ctypes.c_void_p, ctypes.c_int]
         self.lib.sheet_cols.restype = ctypes.c_int
 
         self.lib.sheet_rows.argtypes = [ctypes.c_void_p]
         self.lib.sheet_rows.restype = ctypes.c_int
 
-    def set_cell(self, col, row, value):
-        return self.lib.sheet_set_cell(self.sheet, col, row, value.encode())
+    def set_cell(self, row, col, value):
+        return self.lib.sheet_set_cell(self.sheet, row, col, value.encode())
 
-    def get_cell_val(self, col, row):
-        val = self.lib.sheet_get_cell_val(self.sheet, col, row)
+    def get_cell_val(self, row, col):
+        val = self.lib.sheet_get_cell_val(self.sheet, row, col)
         return val.decode() if val else ""
 
-    def get_cell_formula(self, col, row):
-        form = self.lib.sheet_get_cell_formula(self.sheet, col, row)
+    def get_cell_formula(self, row, col):
+        form = self.lib.sheet_get_cell_formula(self.sheet, row, col)
         return form.decode() if form else ""
 
-    def get_cell_deps(self, col, row):
+    def get_cell_deps(self, row, col):
         count = ctypes.c_int()
         ptr = self.lib.sheet_get_cell_dependencies(
-            self.sheet, col, row, ctypes.byref(count)
+            self.sheet, row, col, ctypes.byref(count)
         )
         if not ptr:
             return []
@@ -70,8 +70,8 @@ class CannoFFI:
         self.lib.free(ptr)
         return deps
 
-    def cols(self):
-        return self.lib.sheet_cols(self.sheet)
+    def cols(self, row):
+        return self.lib.sheet_cols(self.sheet, row)
 
     def rows(self):
         return self.lib.sheet_rows(self.sheet)

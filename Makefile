@@ -1,29 +1,31 @@
+MAKE_FLAGS := -j$(shell nproc --ignore=1)
+
 .PHONY: all run core ui py debug asan clean format
 
 all: core ui
 
 core:
-	$(MAKE) -C core
+	$(MAKE) $(MAKE_FLAGS) -C core
 
 ui: core
-	$(MAKE) -C ui
+	$(MAKE) $(MAKE_FLAGS) -C ui
 
 py: core
-	$(MAKE) -C py
+	$(MAKE) $(MAKE_FLAGS) -C py
 
 debug:
-	$(MAKE) -C core debug
-	$(MAKE) -C ui debug
+	$(MAKE) $(MAKE_FLAGS) -C core debug
+	$(MAKE) $(MAKE_FLAGS) -C ui debug
 
 asan:
-	$(MAKE) -C core asan
-	$(MAKE) -C ui asan
+	$(MAKE) $(MAKE_FLAGS) -C core asan
+	$(MAKE) $(MAKE_FLAGS) -C ui asan
 
 format:
-	$(MAKE) -C core format
-	$(MAKE) -C ui format
+	$(MAKE) $(MAKE_FLAGS) -C core format
+	$(MAKE) $(MAKE_FLAGS) -C ui format
 
 clean:
-	$(MAKE) -C core clean
-	$(MAKE) -C ui clean
-	$(MAKE) -C py clean
+	$(MAKE) $(MAKE_FLAGS) -C core clean
+	$(MAKE) $(MAKE_FLAGS) -C ui clean
+	$(MAKE) $(MAKE_FLAGS) -C py clean

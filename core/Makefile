@@ -3,7 +3,7 @@ CXXFLAGS := -std=c++17 -O2 -Wall -fPIC
 LIBFLAGS := -shared
 
 SRC_DIR := src
-INC_DIR :+ include
+INC_DIR := include
 OBJ_DIR := ../obj/core
 BIN_DIR := ../bin
 

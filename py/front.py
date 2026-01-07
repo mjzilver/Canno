@@ -4,8 +4,8 @@ from canno import CannoFFI
 
 canno = CannoFFI()
 
-cols = canno.cols()
-rows = canno.rows()
+cols = 50
+rows = 50
 
 root = tk.Tk()
 root.title("Canno Spreadsheet")
@@ -60,7 +60,7 @@ for r in range(rows):
 def draw_sheet():
     for r in range(rows):
         for c in range(cols):
-            val = canno.get_cell_val(c, r)
+            val = canno.get_cell_val(r, c)
             e = tk.Entry(scrollable_frame, width=15)
             e.grid(row=r + 1, column=c + 1)
             e.insert(0, val)
@@ -70,17 +70,17 @@ def draw_sheet():
 
 
 def update_deps(deps):
-    [update_cell(c, r) for c, r in deps]
+    [update_cell(r, c) for r, c in deps]
 
 
-def update_cell(col, row):
-    val = canno.get_cell_val(col, row)
+def update_cell(row, col):
+    val = canno.get_cell_val(row, col)
     entries[(row, col)].delete(0, tk.END)
     entries[(row, col)].insert(0, val)
 
 
 def enter_cell(_, row, col):
-    formula = canno.get_cell_formula(col, row)
+    formula = canno.get_cell_formula(row, col)
     if formula:
         entries[(row, col)].delete(0, tk.END)
         entries[(row, col)].insert(0, formula)
@@ -88,10 +88,10 @@ def enter_cell(_, row, col):
 
 def save_cell(_, row, col):
     value = entries[(row, col)].get()
-    canno.set_cell(col, row, value)
+    canno.set_cell(row, col, value)
 
-    update_cell(col, row)
-    update_deps(canno.get_cell_deps(col, row))
+    update_cell(row, col)
+    update_deps(canno.get_cell_deps(row, col))
 
 
 draw_sheet()

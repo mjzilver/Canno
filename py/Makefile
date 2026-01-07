@@ -3,7 +3,7 @@ PY_FILES := $(shell find . -name "*.py")
 CONFIG := config.py
 LIBCANNO := ../bin/libcanno.so
 
-.PHONY: py format clean
+.PHONY: py format clean debug
 
 all: py
 
@@ -13,6 +13,9 @@ py: $(LIBCANNO) $(CONFIG)
 $(CONFIG): $(LIBCANNO)
 	rm -f $(CONFIG)
 	@echo "LIBCANNO_PATH = \"$(LIBCANNO)\"" >> $@
+
+debug: 
+	gdb --args $(PYTHON) front.py
 
 format:
 	black $(PY_FILES)

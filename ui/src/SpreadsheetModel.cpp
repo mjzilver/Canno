@@ -5,8 +5,8 @@
 
 SpreadsheetModel::SpreadsheetModel(Sheet& s, QObject* parent) : QAbstractTableModel(parent), sheet(s) {}
 
-int SpreadsheetModel::rowCount(const QModelIndex&) const { return sheet.SHEET_ROWS; }
-int SpreadsheetModel::columnCount(const QModelIndex&) const { return sheet.SHEET_COLS; }
+int SpreadsheetModel::rowCount(const QModelIndex&) const { return 100; }
+int SpreadsheetModel::columnCount(const QModelIndex&) const { return 100; }
 
 QVariant SpreadsheetModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole) return QVariant();
@@ -28,10 +28,10 @@ QVariant SpreadsheetModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) return QVariant();
 
     if (role == Qt::DisplayRole) {
-        auto cell_val = sheet.get_cell_val(index.column(), index.row());
+        auto cell_val = sheet.get_cell_val(index.row(), index.column());
         if (cell_val) return QString::fromStdString(cell_val.value());
     } else if (role == Qt::EditRole) {
-        auto formula = sheet.get_cell_formula(index.column(), index.row());
+        auto formula = sheet.get_cell_formula(index.row(), index.column());
         if (formula) return QString::fromStdString(formula.value());
     }
     return QVariant();
@@ -40,10 +40,11 @@ QVariant SpreadsheetModel::data(const QModelIndex& index, int role) const {
 bool SpreadsheetModel::setData(const QModelIndex& index, const QVariant& value, int role) {
     if (!index.isValid() || role != Qt::EditRole) return false;
 
-    if (sheet.set_cell(index.column(), index.row(), value.toString().toStdString())) {
+    if (sheet.set_cell(index.row(), index.column(), value.toString().toStdString())) {
         emit dataChanged(index, index);
 
-        Cell* cell = sheet.get_cell(index.column(), index.row());
+        Cell* cell = sheet.get_cell(index.row(), index.column());
+
         auto deps = cell->get_dependencies();
 
         for (auto dep : deps) {

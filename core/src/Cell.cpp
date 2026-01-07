@@ -6,7 +6,7 @@
 #include "../include/Formula.hpp"
 #include "../include/Sheet.hpp"
 
-Cell::Cell(Sheet& sheet, int col, int row) : row(row), col(col), sheet(sheet) {}
+Cell::Cell(Sheet& sheet, int row, int col) : row(row), col(col), sheet(sheet) {}
 
 std::string Cell::get_value() {
     if (dirty && formula.has_value()) {
@@ -21,6 +21,10 @@ std::optional<std::string> Cell::get_formula_val() {
         return std::nullopt;
     }
     return formula->get_text();
+}
+
+std::string Cell::get_formula_or_value() {
+    return formula.has_value() ? formula->get_text() : value;
 }
 
 void Cell::set_value(const std::string& val) {

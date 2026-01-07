@@ -56,10 +56,10 @@ std::optional<std::pair<int, int>> cell_ref_to_indices(const std::string& cell_r
         return std::nullopt;
     }
 
-    return std::pair{col - 1, row - 1};
+    return std::pair{row - 1, col - 1};
 }
 
-std::string indices_to_cell_ref(int col, int row) {
+std::string indices_to_cell_ref(int row, int col) {
     std::string col_str;
     int c = col;
     while (c >= 0) {
